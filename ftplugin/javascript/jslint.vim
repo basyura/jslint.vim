@@ -20,7 +20,13 @@ let s:install_dir = expand('<sfile>:p:h')
 "au BufEnter <buffer> call s:JSLint()
 "au InsertLeave <buffer> call s:JSLint()
 "au InsertEnter <buffer> call s:JSLint()
-au BufWritePost <buffer> call s:JSLint()
+"au BufWritePost <buffer> call s:JSLint()
+au BufWritePost <buffer> call s:check_with_jslint()
+
+function! s:check_with_jslint()
+  call s:JSLintClear()
+  call s:JSLint()
+endfunction
 
 " due to http://tech.groups.yahoo.com/group/vimdev/message/52115
 "if(!has("win32") || v:version>702)
