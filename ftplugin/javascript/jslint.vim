@@ -157,6 +157,8 @@ function! s:JSLint()
     let b:jslint_disabled = 1
   end
 
+  let err_count = 0
+
   for error in split(b:jslint_output, "\n")
     " Match {line}:{char}:{message}
     let b:parts = matchlist(error, '\v(\d+):(\d+):([A-Z]+):(.*)')
@@ -190,6 +192,7 @@ function! s:JSLint()
 
       " Add line to quickfix list
       call add(b:qf_list, l:qf_item)
+      let err_count += 1
     endif
   endfor
 
@@ -202,6 +205,16 @@ function! s:JSLint()
     call setqflist(b:qf_list, '')
     let s:jslint_qf = s:GetQuickFixStackCount()
   endif
+
+  if err_count != 0
+    let err_count = err_count > 5 ? 5 : err_count
+    cclose
+    execute 'copen ' . err_count
+  else
+    cclose
+  endif
+
+
   let b:cleared = 0
 endfunction
 
