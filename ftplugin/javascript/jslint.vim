@@ -214,8 +214,7 @@ function! s:JSLint()
 
   if err_count != 0
     let err_count = err_count > 5 ? 5 : err_count
-    cclose
-    execute 'copen ' . err_count
+    cclose | execute 'copen ' . err_count
   else
     cclose
   endif
