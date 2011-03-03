@@ -111,7 +111,7 @@ if !exists("*s:WideMsg")
     let x=&ruler | let y=&showcmd
     set noruler noshowcmd
     redraw
-    echo a:msg
+    echohl ErrorMsg | echo a:msg | echohl None
     let &ruler=x | let &showcmd=y
   endfun
 endif
