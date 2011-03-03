@@ -64,6 +64,8 @@ endif
 
 " Set up command and parameters
 if has("win32")
+  "let s:cmd           = exists('g:jslint_cmd') ? g:jslint_cmd : 'cscript /NoLogo '
+  "let s:runjslint_ext = exists('g:jslint_ext') ? g:jslint_ext : 'wsf'
   let s:cmd           = exists('g:jslint_cmd') ? g:jslint_cmd : 'cscript /NoLogo '
   let s:runjslint_ext = exists('g:jslint_ext') ? g:jslint_ext : 'wsf'
 else
