@@ -225,7 +225,7 @@ function! s:JSLint()
     let s:jslint_qf = s:GetQuickFixStackCount()
   endif
 
-  if exists('g:jslint_copn')
+  if exists('g:jslint_copen')
     if err_count != 0
       let err_count = err_count > 5 ? 5 : err_count
       cclose | execute 'copen ' . err_count
