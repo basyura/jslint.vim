@@ -15,7 +15,7 @@ endif
 
 let s:install_dir = expand('<sfile>:p:h')
 
-"au BufLeave <buffer> call s:JSLintClear()
+au BufLeave <buffer> call s:JSLintClear()
 
 "au BufEnter <buffer> call s:JSLint()
 "au InsertLeave <buffer> call s:JSLint()
