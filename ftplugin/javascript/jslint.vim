@@ -176,7 +176,8 @@ function! s:JSLint()
     let b:jslint_disabled = 1
   end
 
-  let err_count = 0
+  let err_count  = 0
+  let warn_count = 0
 
   for error in split(b:jslint_output, "\n")
     " Match {line}:{char}:{message}
@@ -192,8 +193,10 @@ function! s:JSLint()
       let b:matchedlines[l:line] = s:matchDict
       if b:parts[3] == 'ERROR'
           let l:errorType = 'E'
+          let err_count += 1
       else
           let l:errorType = 'W'
+          let warn_count += 1
       endif
       if g:JSLintHighlightErrorLine == 1
         let s:mID = matchadd('JSLintError', '\v%' . l:line . 'l\S.*(\S|$)')
@@ -211,7 +214,6 @@ function! s:JSLint()
 
       " Add line to quickfix list
       call add(b:qf_list, l:qf_item)
-      let err_count += 1
     endif
   endfor
 
@@ -233,9 +235,14 @@ function! s:JSLint()
       cclose
     endif
   else
-    if err_count != 0
+    if err_count != 0 || warn_count != 0
+      if err_count != 0
+        echohl ErrorMsg
+      else
+        echohl WarningMsg
+      end
       redraw
-      echohl ErrorMsg | echo  'jslint find ' . err_count . ' errors' | echohl None
+      echo  'jslint find ' . err_count . ' errors , ' . warn_count . ' warns' | echohl None
     endif
   endif
 
