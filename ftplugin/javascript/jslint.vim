@@ -36,7 +36,7 @@ endfunction
 "  au CursorHold <buffer> call s:GetJSLintMessage()
 "endif
 
-"au CursorMoved <buffer> call s:GetJSLintMessage()
+au CursorMoved <buffer> call s:GetJSLintMessage()
 
 if !exists("g:JSLintHighlightErrorLine")
   let g:JSLintHighlightErrorLine = 1
@@ -225,11 +225,13 @@ function! s:JSLint()
     let s:jslint_qf = s:GetQuickFixStackCount()
   endif
 
-  if err_count != 0
-    let err_count = err_count > 5 ? 5 : err_count
-    cclose | execute 'copen ' . err_count
-  else
-    cclose
+  if exists('g:jslint_copn')
+    if err_count != 0
+      let err_count = err_count > 5 ? 5 : err_count
+      cclose | execute 'copen ' . err_count
+    else
+      cclose
+    endif
   endif
 
 
