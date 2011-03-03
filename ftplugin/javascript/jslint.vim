@@ -232,6 +232,11 @@ function! s:JSLint()
     else
       cclose
     endif
+  else
+    if err_count != 0
+      redraw
+      echohl ErrorMsg | echo  'jslint find ' . err_count . ' errors' | echohl None
+    endif
   endif
 
 
