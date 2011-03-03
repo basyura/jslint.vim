@@ -61,10 +61,11 @@ endif
 "noremap <buffer><silent> u u:JSLintUpdate<CR>
 "noremap <buffer><silent> <C-R> <C-R>:JSLintUpdate<CR>
 
+
 " Set up command and parameters
 if has("win32")
-  let s:cmd = 'cscript /NoLogo '
-  let s:runjslint_ext = 'wsf'
+  let s:cmd           = exists('g:jslint_cmd') ? g:jslint_cmd : 'cscript /NoLogo '
+  let s:runjslint_ext = exists('g:jslint_ext') ? g:jslint_ext : 'wsf'
 else
   let s:runjslint_ext = 'js'
   if exists("$JS_CMD")
@@ -79,11 +80,19 @@ else
     echoerr('No JS interpreter found. Checked for jsc, js (spidermonkey), and node')
   endif
 endif
+
+
+
 let s:plugin_path = s:install_dir . "/jslint/"
 if has('win32')
   let s:plugin_path = substitute(s:plugin_path, '/', '\', 'g')
 endif
-let s:cmd = "cd " . s:plugin_path . " && " . s:cmd . " " . s:plugin_path . "runjslint." . s:runjslint_ext
+let s:cmd = "cd " . s:plugin_path . " && " . s:cmd . " '" . s:plugin_path . "runjslint." . s:runjslint_ext . "'"
+if has('win32')
+  " change drive
+  let s:cmd = "cd " . matchstr(s:plugin_path , '^\a:') . " && " . s:cmd
+endif
+
 
 let s:jslintrc_file = expand('~/.jslintrc')
 if filereadable(s:jslintrc_file)
@@ -160,6 +169,8 @@ function! s:JSLint()
   let b:jslint_output = system(s:cmd, lines . "\n")
   if v:shell_error
     echoerr 'could not invoke JSLint!'
+    echoerr s:cmd
+    echoerr b:jslint_output
     let b:jslint_disabled = 1
   end
 
