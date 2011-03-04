@@ -121,7 +121,8 @@ function! s:JSLintClear()
   " Delete previous matches
   let s:matches = getmatches()
   for s:matchId in s:matches
-    if s:matchId['group'] == 'JSLintError'
+    let match_id = s:matchId['group']
+    if  match_id == 'JSLintError' || match_id == 'JSLintWarn'
       call matchdelete(s:matchId['id'])
     endif
   endfor
@@ -136,6 +137,7 @@ function! s:JSLint()
   endif
 
   highlight link JSLintError SpellBad
+  highlight JSLintWarn term=reverse ctermbg=12 gui=undercurl guisp=orange
 
   if exists("b:cleared")
     if b:cleared == 0
@@ -199,7 +201,8 @@ function! s:JSLint()
           let warn_count += 1
       endif
       if g:JSLintHighlightErrorLine == 1
-        let s:mID = matchadd('JSLintError', '\v%' . l:line . 'l\S.*(\S|$)')
+        let match_id = l:errorType == 'E' ? 'JSLintError' : 'JSLintWarn'
+        let s:mID = matchadd(match_id, '\v%' . l:line . 'l\S.*(\S|$)')
       endif
       " Add line to match list
       call add(b:matched, s:matchDict)
