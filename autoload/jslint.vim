@@ -1,41 +1,5 @@
 
-" Global Options
-"
-" Enable/Disable highlighting of errors in source.
-" Default is Enable
-" To disable the highlighting put the line
-" let g:JSLintHighlightErrorLine = 0
-" in your .vimrc
-"
-if exists("b:did_jslint_plugin")
-  finish
-else
-  let b:did_jslint_plugin = 1
-endif
-
-if !exists("g:JSLintHighlightErrorLine")
-  let g:JSLintHighlightErrorLine = 1
-endif
-
 let s:install_dir = expand('<sfile>:p:h')
-
-au BufLeave     <buffer> call s:clear()
-au BufWritePost <buffer> call s:check_with_jslint()
-au CursorMoved  <buffer> call s:message()
-
-function! s:check_with_jslint()
-  call s:clear()
-  call s:jslint()
-endfunction
-
-function! s:update()
-  silent call s:jslint()
-  call s:message()
-endfunction
-
-command JSLintUpdate :call s:update()
-command JSLintToggle :let b:jslint_disabled = exists('b:jslint_disabled') ? b:jslint_disabled ? 0 : 1 : 1
-
 
 " Set up command and parameters
 if has("win32")
@@ -60,7 +24,7 @@ endif
 
 
 
-let s:plugin_path = s:install_dir . "/jslint/"
+let s:plugin_path = s:install_dir . '/../lib/'
 if has('win32')
   let s:plugin_path = substitute(s:plugin_path, '/', '\', 'g')
 endif
@@ -77,20 +41,49 @@ if filereadable(s:jslintrc_file)
 else
   let s:jslintrc = []
 end
+"
+"
+"
+function! jslint#check()
+  call jslint#clear()
+  call s:do_jslint()
+endfunction
+"
+"
+"
+function! jslint#update()
+  silent call s:jslint()
+  call s:message()
+endfunction
+"
+"
+"
+let b:showing_message = 0
+"
+function! jslint#message()
+  let s:cursorPos = getpos(".")
 
+  " Bail if RunJSLint hasn't been called yet
+  if !exists('b:matchedlines')
+    return
+  endif
 
-" echo_error() prints [long] message up to (&columns-1) length
-" guaranteed without "Press Enter" prompt.
-function! s:echo_error(msg)
-  let x=&ruler | let y=&showcmd
-  set noruler noshowcmd
-  redraw
-  echohl ErrorMsg | echo a:msg | echohl None
-  let &ruler=x | let &showcmd=y
-endfun
+  if has_key(b:matchedlines, s:cursorPos[1])
+    let s:jslintMatch = get(b:matchedlines, s:cursorPos[1])
+    call s:echo_error(s:jslintMatch['message'])
+    let b:showing_message = 1
+    return
+  endif
 
-
-function! s:clear()
+  if b:showing_message == 1
+    echo
+    let b:showing_message = 0
+  endif
+endfunction
+"
+"
+"
+function! jslint#clear()
   " Delete previous matches
   let s:matches = getmatches()
   for s:matchId in s:matches
@@ -104,7 +97,23 @@ function! s:clear()
   let b:cleared = 1
 endfunction
 
-function! s:jslint()
+
+
+
+" echo_error() prints [long] message up to (&columns-1) length
+" guaranteed without "Press Enter" prompt.
+function! s:echo_error(msg)
+  let x=&ruler | let y=&showcmd
+  set noruler noshowcmd
+  redraw
+  echohl ErrorMsg | echo a:msg | echohl None
+  let &ruler=x | let &showcmd=y
+endfun
+
+
+
+function! s:do_jslint()
+
   if exists("b:jslint_disabled") && b:jslint_disabled == 1
     return
   endif
@@ -114,7 +123,7 @@ function! s:jslint()
 
   if exists("b:cleared")
     if b:cleared == 0
-      call s:clear()
+      call jslint#clear()
     endif
     let b:cleared = 1
   endif
@@ -173,7 +182,7 @@ function! s:jslint()
           let l:errorType = 'W'
           let warn_count += 1
       endif
-      if g:JSLintHighlightErrorLine == 1
+      if g:jslint_highlight_error_line == 1
         let match_id = l:errorType == 'E' ? 'JSLintError' : 'JSLintWarn'
         let s:mID = matchadd(match_id, '\v%' . l:line . 'l\S.*(\S|$)')
       endif
@@ -226,28 +235,6 @@ function! s:jslint()
   let b:cleared = 0
 endfunction
 
-let b:showing_message = 0
-
-function! s:message()
-  let s:cursorPos = getpos(".")
-
-  " Bail if RunJSLint hasn't been called yet
-  if !exists('b:matchedlines')
-    return
-  endif
-
-  if has_key(b:matchedlines, s:cursorPos[1])
-    let s:jslintMatch = get(b:matchedlines, s:cursorPos[1])
-    call s:echo_error(s:jslintMatch['message'])
-    let b:showing_message = 1
-    return
-  endif
-
-  if b:showing_message == 1
-    echo
-    let b:showing_message = 0
-  endif
-endfunction
 
 function! s:get_quick_fix_stack_count()
     let l:stack_count = 0
@@ -280,4 +267,5 @@ function! s:activate_quick_fix_window()
         endtry
     endif
 endfunction
+
 
