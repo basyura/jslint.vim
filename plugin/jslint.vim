@@ -7,6 +7,16 @@
 " let g:jslint_highlight_error_line = 0
 " in your .vimrc
 "
+"
+" autocmd FileType javascript call s:javascript_filetype_settings()
+" function! s:javascript_filetype_settings()
+"   autocmd BufLeave     <buffer> call jslint#clear()
+"   autocmd BufWritePost <buffer> call jslint#check()
+"   autocmd CursorMoved  <buffer> call jslint#message()
+" endfunction
+"
+"
+"
 if exists("b:did_jslint_plugin")
   finish
 else
