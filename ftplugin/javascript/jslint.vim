@@ -13,53 +13,28 @@ else
   let b:did_jslint_plugin = 1
 endif
 
-let s:install_dir = expand('<sfile>:p:h')
-
-au BufLeave <buffer> call s:JSLintClear()
-
-"au BufEnter <buffer> call s:JSLint()
-"au InsertLeave <buffer> call s:JSLint()
-"au InsertEnter <buffer> call s:JSLint()
-"au BufWritePost <buffer> call s:JSLint()
-au BufWritePost <buffer> call s:check_with_jslint()
-
-function! s:check_with_jslint()
-  call s:JSLintClear()
-  call s:JSLint()
-endfunction
-
-" due to http://tech.groups.yahoo.com/group/vimdev/message/52115
-"if(!has("win32") || v:version>702)
-"  au CursorHold <buffer> call s:JSLint()
-"  au CursorHoldI <buffer> call s:JSLint()
-
-"  au CursorHold <buffer> call s:GetJSLintMessage()
-"endif
-
-au CursorMoved <buffer> call s:GetJSLintMessage()
-
 if !exists("g:JSLintHighlightErrorLine")
   let g:JSLintHighlightErrorLine = 1
 endif
 
-if !exists("*s:JSLintUpdate")
-  function s:JSLintUpdate()
-    silent call s:JSLint()
-    call s:GetJSLintMessage()
-  endfunction
-endif
+let s:install_dir = expand('<sfile>:p:h')
 
-if !exists(":JSLintUpdate")
-  command JSLintUpdate :call s:JSLintUpdate()
-endif
-if !exists(":JSLintToggle")
-  command JSLintToggle :let b:jslint_disabled = exists('b:jslint_disabled') ? b:jslint_disabled ? 0 : 1 : 1
-endif
+au BufLeave     <buffer> call s:clear()
+au BufWritePost <buffer> call s:check_with_jslint()
+au CursorMoved  <buffer> call s:message()
 
-"noremap <buffer><silent> dd dd:JSLintUpdate<CR>
-"noremap <buffer><silent> dw dw:JSLintUpdate<CR>
-"noremap <buffer><silent> u u:JSLintUpdate<CR>
-"noremap <buffer><silent> <C-R> <C-R>:JSLintUpdate<CR>
+function! s:check_with_jslint()
+  call s:clear()
+  call s:jslint()
+endfunction
+
+function! s:update()
+  silent call s:jslint()
+  call s:message()
+endfunction
+
+command JSLintUpdate :call s:update()
+command JSLintToggle :let b:jslint_disabled = exists('b:jslint_disabled') ? b:jslint_disabled ? 0 : 1 : 1
 
 
 " Set up command and parameters
@@ -104,20 +79,18 @@ else
 end
 
 
-" WideMsg() prints [long] message up to (&columns-1) length
+" echo_error() prints [long] message up to (&columns-1) length
 " guaranteed without "Press Enter" prompt.
-if !exists("*s:WideMsg")
-  function s:WideMsg(msg)
-    let x=&ruler | let y=&showcmd
-    set noruler noshowcmd
-    redraw
-    echohl ErrorMsg | echo a:msg | echohl None
-    let &ruler=x | let &showcmd=y
-  endfun
-endif
+function! s:echo_error(msg)
+  let x=&ruler | let y=&showcmd
+  set noruler noshowcmd
+  redraw
+  echohl ErrorMsg | echo a:msg | echohl None
+  let &ruler=x | let &showcmd=y
+endfun
 
 
-function! s:JSLintClear()
+function! s:clear()
   " Delete previous matches
   let s:matches = getmatches()
   for s:matchId in s:matches
@@ -131,7 +104,7 @@ function! s:JSLintClear()
   let b:cleared = 1
 endfunction
 
-function! s:JSLint()
+function! s:jslint()
   if exists("b:jslint_disabled") && b:jslint_disabled == 1
     return
   endif
@@ -141,7 +114,7 @@ function! s:JSLint()
 
   if exists("b:cleared")
     if b:cleared == 0
-      call s:JSLintClear()
+      call s:clear()
     endif
     let b:cleared = 1
   endif
@@ -222,12 +195,12 @@ function! s:JSLint()
 
   if exists("s:jslint_qf")
     " if jslint quickfix window is already created, reuse it
-    call s:ActivateJSLintQuickFixWindow()
+    call s:activate_quick_fix_window()
     call setqflist(b:qf_list, 'r')
   else
     " one jslint quickfix window for all buffers
     call setqflist(b:qf_list, '')
-    let s:jslint_qf = s:GetQuickFixStackCount()
+    let s:jslint_qf = s:get_quick_fix_stack_count()
   endif
 
   if exists('g:jslint_copen')
@@ -255,62 +228,56 @@ endfunction
 
 let b:showing_message = 0
 
-if !exists("*s:GetJSLintMessage")
-  function s:GetJSLintMessage()
-    let s:cursorPos = getpos(".")
+function! s:message()
+  let s:cursorPos = getpos(".")
 
-    " Bail if RunJSLint hasn't been called yet
-    if !exists('b:matchedlines')
-      return
-    endif
+  " Bail if RunJSLint hasn't been called yet
+  if !exists('b:matchedlines')
+    return
+  endif
 
-    if has_key(b:matchedlines, s:cursorPos[1])
-      let s:jslintMatch = get(b:matchedlines, s:cursorPos[1])
-      call s:WideMsg(s:jslintMatch['message'])
-      let b:showing_message = 1
-      return
-    endif
+  if has_key(b:matchedlines, s:cursorPos[1])
+    let s:jslintMatch = get(b:matchedlines, s:cursorPos[1])
+    call s:echo_error(s:jslintMatch['message'])
+    let b:showing_message = 1
+    return
+  endif
 
-    if b:showing_message == 1
-      echo
-      let b:showing_message = 0
-    endif
-  endfunction
-endif
+  if b:showing_message == 1
+    echo
+    let b:showing_message = 0
+  endif
+endfunction
 
-if !exists("*s:GetQuickFixStackCount")
-    function s:GetQuickFixStackCount()
-        let l:stack_count = 0
+function! s:get_quick_fix_stack_count()
+    let l:stack_count = 0
+    try
+        silent colder 9
+    catch /E380:/
+    endtry
+
+    try
+        for i in range(9)
+            silent cnewer
+            let l:stack_count = l:stack_count + 1
+        endfor
+    catch /E381:/
+        return l:stack_count
+    endtry
+endfunction
+
+function! s:activate_quick_fix_window()
+    try
+        silent colder 9 " go to the bottom of quickfix stack
+    catch /E380:/
+    endtry
+
+    if s:jslint_qf > 0
         try
-            silent colder 9
-        catch /E380:/
-        endtry
-
-        try
-            for i in range(9)
-                silent cnewer
-                let l:stack_count = l:stack_count + 1
-            endfor
+            exe "silent cnewer " . s:jslint_qf
         catch /E381:/
-            return l:stack_count
+            echoerr "Could not activate JSLint Quickfix Window."
         endtry
-    endfunction
-endif
-
-if !exists("*s:ActivateJSLintQuickFixWindow")
-    function s:ActivateJSLintQuickFixWindow()
-        try
-            silent colder 9 " go to the bottom of quickfix stack
-        catch /E380:/
-        endtry
-
-        if s:jslint_qf > 0
-            try
-                exe "silent cnewer " . s:jslint_qf
-            catch /E381:/
-                echoerr "Could not activate JSLint Quickfix Window."
-            endtry
-        endif
-    endfunction
-endif
+    endif
+endfunction
 
