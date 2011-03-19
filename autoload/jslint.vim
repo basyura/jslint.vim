@@ -58,9 +58,12 @@ endfunction
 "
 "
 "
-let b:showing_message = 0
 "
 function! jslint#message()
+  if !exists('b:showing_message')
+    let b:showing_message = 0
+  endif
+
   let s:cursorPos = getpos(".")
 
   " Bail if RunJSLint hasn't been called yet
