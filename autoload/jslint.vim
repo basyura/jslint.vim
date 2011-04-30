@@ -25,10 +25,12 @@ endif
 
 
 let s:plugin_path = s:install_dir . '/../lib/'
+let s:quote_mark = "'"
 if has('win32')
   let s:plugin_path = substitute(s:plugin_path, '/', '\', 'g')
+  let s:quote_mark = '"'
 endif
-let s:cmd = "cd " . s:plugin_path . " && " . s:cmd . " '" . s:plugin_path . "runjslint." . s:runjslint_ext . "'"
+let s:cmd = "cd " . s:plugin_path . " && " . s:cmd . ' ' . s:quote_mark . s:plugin_path . "runjslint." . s:runjslint_ext . s:quote_mark
 if has('win32')
   " change drive
   let s:cmd = "cd " . matchstr(s:plugin_path , '^\a:') . " && " . s:cmd
