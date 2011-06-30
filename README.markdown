@@ -2,7 +2,11 @@
 this forked jslinkt.vim don't check automatically.
 you must call functions like this.
 
-        autocmd FileType javascript call s:javascript_filetype_settings()
+        augroup MyGroup
+          autocmd! MyGroup
+          autocmd FileType javascript call s:javascript_filetype_settings()
+        augroup END
+        
         function! s:javascript_filetype_settings()
           autocmd BufLeave     <buffer> call jslint#clear()
           autocmd BufWritePost <buffer> call jslint#check()
