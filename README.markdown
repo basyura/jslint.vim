@@ -1,5 +1,5 @@
 
-this forked jslinkt.vim don't check automatically.
+this forked jslint.vim don't check automatically.
 you must call functions like this.
 
         augroup MyGroup
