@@ -53,13 +53,6 @@ endfunction
 "
 "
 "
-function! jslint#update()
-  silent call s:jslint()
-  call s:message()
-endfunction
-"
-"
-"
 "
 function! jslint#message()
   if !exists('b:showing_message')

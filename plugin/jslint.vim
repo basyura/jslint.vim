@@ -28,7 +28,6 @@ if !exists('g:jslint_highlight_error_line')
 endif
 
 command JSLint :call jslint#check()
-command JSLintUpdate :call jslint#update()
 command JSLintToggle :let b:jslint_disabled = exists('b:jslint_disabled') ? b:jslint_disabled ? 0 : 1 : 1
 
 
