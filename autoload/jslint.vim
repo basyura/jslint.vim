@@ -117,7 +117,7 @@ function! s:do_jslint()
   endif
 
   highlight link JSLintError SpellBad
-  highlight JSLintWarn term=reverse ctermbg=12 gui=undercurl guisp=orange
+  highlight link JSLintWarn WarningMsg
 
   if exists("b:cleared")
     if b:cleared == 0
